@@ -5,7 +5,11 @@ async function rpcServer() {
   const connection = await amqp.connect("amqp://localhost");
   const channel = await connection.createChannel();
   const queue = "rpc_queue";
-  channel.assertQueue(queue, { durable: false });
+  channel.assertQueue(queue, {
+    durable: true,
+    exclusive: false,
+    messageTtl: 3e5
+  });
   channel.prefetch(1);
 
   channel.consume(
@@ -23,18 +27,10 @@ async function rpcServer() {
           channel.ack(msg);
         })
         .catch(err => {
-          console.error(err.message);
-          channel.sendToQueue(
-            msg.properties.replyTo,
-            Buffer.from(err.message),
-            {
-              correlationId: msg.properties.correlationId
-            }
-          );
-          channel.ack(msg);
+          console.log("ERROR: ", err)
+          channel.nack(msg);
         });
-    },
-    { exclusive: true }
+    }
   );
 }
 

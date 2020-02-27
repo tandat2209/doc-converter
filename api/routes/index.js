@@ -13,6 +13,7 @@ var storage = multer.diskStorage({
 var upload = multer({ storage });
 
 router.post("/", upload.single("file"), async function(req, res) {
+  req.setTimeout(3E5);
   const response = await sendRequestToQueue(req.file);
   res.end(response.content);
 });

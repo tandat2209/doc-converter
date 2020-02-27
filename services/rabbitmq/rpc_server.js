@@ -6,20 +6,33 @@ async function rpcServer() {
   const channel = await connection.createChannel();
   const queue = "rpc_queue";
   channel.assertQueue(queue, { durable: false });
+  channel.prefetch(1);
 
   channel.consume(
     queue,
     msg => {
       var filePath = msg.content.toString();
-      console.log("New convert request: ", filePath);
-      convert(filePath).then(buffer => {
-        console.log("Convert done: ", filePath);
-        channel.sendToQueue(msg.properties.replyTo, buffer, {
-          correlationId: msg.properties.correlationId
-        });
+      console.info("New convert request: ", filePath);
+      convert(filePath)
+        .then(buffer => {
+          console.info("Convert done: ", filePath);
+          channel.sendToQueue(msg.properties.replyTo, buffer, {
+            correlationId: msg.properties.correlationId
+          });
 
-        channel.ack(msg);
-      });
+          channel.ack(msg);
+        })
+        .catch(err => {
+          console.error(err.message);
+          channel.sendToQueue(
+            msg.properties.replyTo,
+            Buffer.from(err.message),
+            {
+              correlationId: msg.properties.correlationId
+            }
+          );
+          channel.ack(msg);
+        });
     },
     { exclusive: true }
   );

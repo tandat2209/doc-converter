@@ -3,8 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node ./bin/www",
-    "start-rabbitmq": "node ./services/rabbitmq/rpc_server"
+    "start": "node ./bin/www"
   },
   "dependencies": {
     "amqplib": "^0.5.5",

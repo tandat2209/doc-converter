@@ -1,5 +1,5 @@
 const amqp = require("amqplib");
-const convert = require("../convert");
+const convert = require("./convert");
 
 async function rpcServer() {
   const connection = await amqp.connect("amqp://localhost");
